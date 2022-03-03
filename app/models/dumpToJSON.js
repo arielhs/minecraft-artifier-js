@@ -13,22 +13,47 @@ export function dumpToJSON(store) {
         [BLUE_CONCRETE]: 'water',
         [GOLD_BLOCK]: 'road',
     }
-    
+
+    let currentEstateId = 0
+    const nextEstateId = () => (++currentEstateId)
+
 
     const result = []
     arr.forEach((blockId, idx) => {
         const x = idx % store.imageWidth
-        const y = Math.floor(idx / store.imageHeight);
+        const y = Math.floor(idx / store.imageWidth) // not a typo, these both are calced from imageWidth
+
+        const plot_type = PLOT_TYPES[blockId]
+
+        const getEstateId = () => {
+            if (plot_type !== 'estate-land') return null
+
+            // assumes they are squares. first look at the one behind us
+            if (x !== 0) {
+                const maybeEstateIdBehind = result[idx - 1].estate_id
+                if (maybeEstateIdBehind) return maybeEstateIdBehind
+            }
+            
+            // no estate behind us, check above us
+            // if y === 0 then there's nothing above us to check
+            if (y === 0) return nextEstateId()
+
+            return result[idx - store.imageWidth].estate_id || nextEstateId()
+            
+        }
+
         result.push({
             x,
             y,
-            plot_type: PLOT_TYPES[blockId]
-
+            plot_type,
+            estate_id: getEstateId()
         })
     })
     
     downloadObjectAsJson(result, 'plot_data')
 }
+
+
 
 function downloadObjectAsJson(exportObj, exportName){
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObj));
