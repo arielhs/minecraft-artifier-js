@@ -13,6 +13,7 @@ export function dumpToJSON(store) {
         [BLUE_CONCRETE]: 'water',
         [GOLD_BLOCK]: 'road',
     }
+    
 
     const result = []
     arr.forEach((blockId, idx) => {
